@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -1820,7 +1820,27 @@ namespace System.Linq.Dynamic.Core.Parser
 
             _parent = _it;
 
-            if (methodName == "Contains" || methodName == "ContainsKey" || methodName == "Skip" || methodName == "Take")
+            bool flag;
+            bool isCaseSensitive = _parsingConfig?.IsCaseSensitive == true;
+            if (isCaseSensitive)
+            {
+                flag =
+                    methodName == "Contains" ||
+                    methodName == "ContainsKey" ||
+                    methodName == "Skip" ||
+                    methodName == "Take";
+            }
+            else
+            {
+                flag =
+                    string.Compare(methodName, "Contains", true) == 0 ||
+                    string.Compare(methodName, "ContainsKey", true) == 0 ||
+                    string.Compare(methodName, "Skip", true) == 0 ||
+                    string.Compare(methodName, "Take", true) == 0;
+            }
+
+            //if (methodName == "Contains" || methodName == "ContainsKey" || methodName == "Skip" || methodName == "Take")
+            if (flag)
             {
                 // for any method that acts on the parent element type, we need to specify the outerIt as scope.
                 _it = outerIt;
@@ -1853,7 +1873,7 @@ namespace System.Linq.Dynamic.Core.Parser
             }
 
             Type[] typeArgs;
-            if (new[] { "OfType", "Cast" }.Contains(methodName))
+            if (new[] { "OfType", "Cast" }.Contains(methodName, isCaseSensitive ? StringComparer.CurrentCulture : StringComparer.CurrentCultureIgnoreCase))
             {
                 if (args.Length != 1)
                 {
@@ -1863,7 +1883,7 @@ namespace System.Linq.Dynamic.Core.Parser
                 typeArgs = new[] { ResolveTypeFromArgumentExpression(methodName, args[0]) };
                 args = new Expression[0];
             }
-            else if (new[] { "Min", "Max", "Select", "OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending", "GroupBy" }.Contains(methodName))
+            else if (new[] { "Min", "Max", "Select", "OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending", "GroupBy" }.Contains(methodName, isCaseSensitive ? StringComparer.CurrentCulture : StringComparer.CurrentCultureIgnoreCase))
             {
                 if (args.Length == 2)
                 {
@@ -1893,7 +1913,7 @@ namespace System.Linq.Dynamic.Core.Parser
             }
             else
             {
-                if (new[] { "Concat", "Contains", "DefaultIfEmpty", "Except", "Intersect", "Skip", "Take", "Union" }.Contains(methodName))
+                if (new[] { "Concat", "Contains", "DefaultIfEmpty", "Except", "Intersect", "Skip", "Take", "Union" }.Contains(methodName, isCaseSensitive ? StringComparer.CurrentCulture : StringComparer.CurrentCultureIgnoreCase))
                 {
                     args = new[] { instance, args[0] };
                 }
